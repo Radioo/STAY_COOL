@@ -1,0 +1,20 @@
+body {
+    overflow-y: hidden; /* Hide vertical scrollbar */
+    overflow-x: hidden; /* Hide horizontal scrollbar */
+  }
+#tickertext {
+    width: 100%;
+    margin: auto;
+	/* margin-left: 4px; */
+	text-align: center;
+    /* font-kerning: none; No idea if this is needed anymore */
+    /* white-space: pre; I think this kept whitespace */
+    color:white;
+    text-shadow: 0 0 10px black, 0 0 10px black, 0 0 10px black, 0 0 10px black;
+    font-family: 'Aldo The Apache';
+    font-size:40px;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
