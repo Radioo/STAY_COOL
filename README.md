@@ -1,3 +1,5 @@
+![Preview](https://stn.s-ul.eu/A8f49Dzl.png)
+
 # STAY_COOL
 HTML ticker display for IIDX
 
