@@ -37,3 +37,27 @@ It's important to understand the connection behavior. As soon as you load the pa
 
 **Customizing the look**  
 You can customize to your heart's content using style.css.
+
+# Addresses  
+All of these were found while running btools, might work on spice as well, haven't tested.
+
+09 0x18EF7E4  
+10 0x0194553C  
+11 0x0157B474  
+12 0x01924F28  
+13 0x01FF8A30  
+14 0x029427A0  
+15 0x029F2460  
+16 0x0297E820  
+17 0x02399BF0  
+18 0x0 (use auto, toastertools makes the address change on each boot)  
+19 0x0 (same as 18)  
+20 0x10C7C608  
+21 0x1141ACE8  
+22 0x1143AC28  
+23 0x11421F58  
+24 0x116A9B68  
+25 0x1824AB390  
+26 0x18313DAF0  
+27 0x18554B3E0  
+28 0x18554B3E0   
