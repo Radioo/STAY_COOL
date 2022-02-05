@@ -61,5 +61,6 @@ All of these were found while running btools, might work on spice as well, haven
 26 0x18313DAF0  
 27 0x18554B3E0  
 28 0x18554B3E0   
-29 0x1866C7270  
+29 (2021-10-13) 0x1866C7270  
+29 (2021-11-17) 0x1866CA7B0  
 30 0x858BA62BC5  
