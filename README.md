@@ -12,7 +12,7 @@ You need to provide additional arguments as well, they are listed below:
 
 Example: `TickerServer.exe 0x10C7C608 launcher 10.0.0.31 128 500`
 
-1: The game's ticker memory address. This will vary from game to game and maybe even between different tools. As long as it stays the same on each boot, you're good to go. I've included the addresses I found while testing at the bottom.  
+1: The game's ticker memory address. This will vary from game to game and maybe even between different tools. As long as it stays the same on each boot, you're good to go. I've included the addresses I found while testing at the bottom. [I've also made a guide to find it yourself.](https://github.com/Radioo/STAY_COOL/wiki/Finding-the-ticker-address)  
 2: Game's process name. `bm2dx` for 9-17, `launcher` for 18+, `spice` or `spice64` if using spicetools.  
 3: Local IP address of the host.  
 4: Number of bytes to read. You can make it lower if you want, I ran it with 64 for a long time. If your ticker text is too long and gets cut off, increase it. I found 128 works quite well.  
