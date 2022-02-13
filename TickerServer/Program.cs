@@ -1,103 +1,107 @@
 ﻿using System.Diagnostics;
+using System.Net;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Timers;
 using WebSocketSharp;
 using WebSocketSharp.Server;
-using System.Timers;
 using Timer = System.Timers.Timer;
 
 namespace TickerServer
 {
     public class Program
     {
-        public static IntPtr address;
-        public static IntPtr startaddr = (IntPtr)0x02A00000;
-        public static IntPtr endaddr = (IntPtr)0x02FFFFFF;
-        public static string ProcessName;
-        public static string HostAddress;
-        public static int bytes;
-        public static bool auto = false;
-        public static Timer t;
-        public static string text = "";
+        public static Dictionary<string, string>? ArgsDic;
+        public static Timer? T;
+        public static string? HostIP;
+        public static int Port = 10573;
+        public static IntPtr Address;
+        public static string Text = string.Empty;
+        public static bool Initialized = false;
+        public static MemProber Prober;
+        public static string FilePath;
+        public static IntPtr AutoStart = (IntPtr)0x02900000;
+        public static IntPtr AutoEnd = (IntPtr)0x02FFFFFF;
 
         static void Main(string[] args)
         {
-            // check for invalid usage
-            if (args.Length < 5)
+            // Parse arguments
+            ArPar parser = new(args);
+            ArgsDic = new(parser.ParseArgs());
+            Address = new IntPtr(Convert.ToInt64(ArgsDic["-a"], 16));
+            Prober = new();
+
+            // Initialize the timer, check if interval override present 
+            T = new Timer(500);
+            if (ArgsDic.ContainsKey("-t"))
             {
-                Console.WriteLine("Usage: TickerServer.exe MemoryLocation ProcessName HostAddress NumberOfBytesToRead ScanInterval AutoFlag(optional) AutoStartAddr(optional) AutoEndAddr(optional) \n" +
-                    "Example: Tickerserver.exe 0x10C7C814 launcher 10.0.0.31 128 500");
+                string newInterval = ArgsDic["-t"];
+                Console.WriteLine($"Setting timer interval to {newInterval}");
+                T.Interval = Convert.ToDouble(newInterval);
+            }
+
+            // Get local IP address if not specified through parameter
+            if (!ArgsDic.ContainsKey("-ip"))
+            {
+                string localIP = string.Empty;
+                using (Socket socket = new(AddressFamily.InterNetwork, SocketType.Dgram, 0))
+                {
+                    socket.Connect("8.8.8.8", 65530);
+                    IPEndPoint? endPoint = socket.LocalEndPoint as IPEndPoint;
+                    HostIP = endPoint.Address.ToString();
+                }
+            }
+            else
+            {
+                HostIP = ArgsDic["-ip"];
+            }
+
+            // Check for port override
+            if (ArgsDic.ContainsKey("-port"))
+            {
+                Port = Convert.ToInt32(ArgsDic["-port"]);
+            }
+
+            // Check for file flag
+            if (ArgsDic.ContainsKey("-file"))
+            {
+                // File mode
+                Console.WriteLine(@"File mode enabled! Remember to escape the backslashes! (E:\\example.txt)");
+                if (ArgsDic.ContainsKey("--auto"))
+                {
+                    FindAddr();
+                }
+                FilePath = ArgsDic["-file"];
+                Prober.Initialize();
+                T.Elapsed += OnTimerElapsed;
+                T.Enabled = true;
                 Console.ReadLine();
             }
             else
             {
-                // check if provided address is 32-bit or 64-bit
-                if (args[0].Length <= 10)
-                {
-                    address = new IntPtr(Convert.ToInt32(args[0], 16));
-                }
-                else
-                {
-                    address = new IntPtr(Convert.ToInt64(args[0], 16));
-                }
-                /*
-                if (args[0] == "32")
-                {
-                    address = new IntPtr(Convert.ToInt32(args[1], 16));
-
-
-                }
-                else if (args[0] == "64")
-                {
-                    address = new IntPtr(Convert.ToInt64(args[1], 16));
-                }
-                */
-
-                // parse args
-                ProcessName = args[1];
-                HostAddress = args[2];
-                bytes = Convert.ToInt32(args[3]);
-
-                t = new();
-                t.Interval = Convert.ToDouble(args[4]);
-
-                // start server
-                WebSocketServer wssv = new WebSocketServer($"ws://{HostAddress}:10573");
-
+                // Server mode
+                WebSocketServer wssv = new WebSocketServer($"ws://{HostIP}:{Port}");
                 wssv.AddWebSocketService<Echo>("/Echo");
-
                 wssv.Start();
-                Console.WriteLine("Server started");
 
-                // check for auto flag
-                if (args.Length == 6 && args[5] == "auto")
+                if (wssv.IsListening)
                 {
-                    auto = true;
-                }
-                else if (args.Length == 8)
-                {
-                    if (args[6].Length <= 10)
-                    {
-                        startaddr = new IntPtr(Convert.ToInt32(args[6], 16));
-                    }
-                    else
-                    {
-                        startaddr = new IntPtr(Convert.ToInt64(args[6], 16));
-                    }
-                    if (args[7].Length <= 10)
-                    {
-                        endaddr = new IntPtr(Convert.ToInt32(args[7], 16));
-                    }
-                    else
-                    {
-                        endaddr = new IntPtr(Convert.ToInt64(args[7], 16));
-                    }
-                    auto = true;
+                    Console.WriteLine($"Server started at {wssv.Address}:{wssv.Port}, waiting for a connection...");
                 }
 
-                // stop the server with the enter key
                 Console.ReadLine();
                 wssv.Stop();
+            }
+        }
+        static public void OnTimerElapsed(object source, ElapsedEventArgs e)
+        {
+            string proberesult = Prober.Probe(Address);
+            if (Text != proberesult)
+            {
+                Task.Run(() => File.WriteAllTextAsync(FilePath, proberesult));
+                Console.WriteLine($"Wrote: {proberesult}");
+                Text = proberesult;
             }
         }
 
@@ -123,25 +127,35 @@ namespace TickerServer
         // this finds the address with the auto mode, messy, not good
         public static bool FindAddr()
         {
-            if (auto)
+            if (ArgsDic.ContainsKey("--auto"))
             {
-                Process process = Process.GetProcessesByName("launcher")[0];
+                if (ArgsDic.ContainsKey("-as"))
+                {
+                    AutoStart = new IntPtr(Convert.ToInt64(ArgsDic["-as"]));
+                }
+                if (ArgsDic.ContainsKey("-ae"))
+                {
+                    AutoEnd = new IntPtr(Convert.ToInt64(ArgsDic["-ae"]));
+                }
+
+                Process process = Process.GetProcessesByName(ArgsDic["-p"])[0];
                 IntPtr p = MemProber.OpenProcess(0x10, true, process.Id);
 
                 byte[] bytes = { 0x20, 0x20, 0x57, 0x45 };
                 byte[] buffer = new byte[bytes.Length];
-                IntPtr PTR = startaddr;
+                IntPtr PTR = AutoStart;
                 IntPtr bytesread;
 
                 Console.WriteLine("Looking for target, please stay on the title screen");
-                while (PTR != endaddr)
+                IntPtr endAddr = AutoEnd;
+                while (PTR != endAddr)
                 {
                     MemProber.ReadProcessMemory(p, PTR, buffer, buffer.Length, out bytesread);
                     if (ByteCompare(buffer, bytes))
                     {
                         Console.WriteLine($"Found the target at address {PTR:X}");
                         PTR -= 0x8;
-                        address = PTR;
+                        Address = PTR;
                         Console.WriteLine(Encoding.ASCII.GetString(buffer));
                         Console.WriteLine("Scan finished.");
                         return true;
@@ -162,18 +176,32 @@ namespace TickerServer
         public static Process process;
         IntPtr processHandle;
         byte[] buffer;
+        static string ProcessName;
+        static int BytesToRead = 128;
 
         public MemProber()
         {
-
+            ProcessName = Program.ArgsDic["-p"];
+            // Check for byte number override
+            if (Program.ArgsDic.ContainsKey("-b"))
+            {
+                BytesToRead = Convert.ToInt32(Program.ArgsDic["-b"]);
+            }
         }
 
         public void Initialize()
         {
             Console.WriteLine("Initializing process hook...");
-            process = Process.GetProcessesByName(Program.ProcessName)[0];
-            processHandle = OpenProcess(PROCESS_WM_READ, false, process.Id);
-            buffer = new byte[Program.bytes];
+            try
+            {
+                process = Process.GetProcessesByName(ProcessName)[0];
+                processHandle = OpenProcess(PROCESS_WM_READ, false, process.Id);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Oh boy, did you type the process name wrong? Or worse, did you actually not laucnch the game? \n" + ex);
+            }
+            buffer = new byte[Convert.ToInt32(BytesToRead)];
             Console.WriteLine("Done!");
         }
 
@@ -190,13 +218,13 @@ namespace TickerServer
         // convert ticker specific codes for dots and the like
         public string ParseString(string input)
         {
-            return input.Replace("m", ".").Replace("u", ",").Replace("q", "'");
+            return input.Replace("m", ".").Replace("u", ",").Replace("q", "'").Replace('\0', ' ');
         }
 
         // parses bytes read and stops at the first 0x0 after a string has begun
         public byte[] ParseBytes(byte[] input)
         {
-            byte[] output = new byte[Program.bytes];
+            byte[] output = new byte[Convert.ToInt32(BytesToRead)];
             int count = 0;
             bool firstchar = false;
 
@@ -227,8 +255,6 @@ namespace TickerServer
 
     public class Echo : WebSocketBehavior
     {
-        MemProber prober;
-
         protected override void OnMessage(MessageEventArgs e)
         {
             //string text = prober.Probe(Program.address);
@@ -239,40 +265,45 @@ namespace TickerServer
         // waits for the auto detection if used, starts a timer and assigns the event function
         protected override async void OnOpen()
         {
-            if (Program.auto)
+            Console.WriteLine("Client connected!");
+            Send("CONNECTED!");
+            if (!Program.Initialized)
             {
-                Send("WAITING FOR AUTO DETECTION...");
+                if (Program.ArgsDic.ContainsKey("--auto"))
+                {
+                    Send("WAITING FOR AUTO DETECTION...");
+                }
+                bool result = await Task.Run(() => Program.FindAddr());
+                if (!result)
+                {
+                    Send("NO ADDRESS FOUND :( CONNECT AGAIN TO RETRY SCAN");
+                }
+                else
+                {
+                    Program.Prober.Initialize();
+                    Program.Initialized = true;
+                }
             }
-            bool result = await Task.Run(() => Program.FindAddr());
-            if (!result)
-            {
-                Send("NO ADDRESS FOUND :(");
-            }
-            else
-            {
-                prober = new();
-                prober.Initialize();
-
-                Program.t.Elapsed += OnTimerElapsed;
-                Program.t.Enabled = true;
-            }
+            Program.T.Elapsed += OnTimerElapsed;
+            Program.T.Enabled = true;
         }
 
         protected override void OnClose(CloseEventArgs e)
         {
-            Program.t.Enabled = false;
-            Program.t.Elapsed -= OnTimerElapsed;
+            Console.WriteLine("Client disconnected.");
+            Program.T.Elapsed -= OnTimerElapsed;
+            Program.T.Enabled = false;
         }
 
         // sends data to the client if it is different from the previously read one
         public void OnTimerElapsed(object source, ElapsedEventArgs e)
         {
-            string proberesult = prober.Probe(Program.address);
-            if (Program.text != proberesult)
+            string proberesult = Program.Prober.Probe(Program.Address);
+            if (Program.Text != proberesult)
             {
                 Send(proberesult);
                 Console.WriteLine($"Sent: {proberesult}");
-                Program.text = proberesult;
+                Program.Text = proberesult;
             }
         }
     }
