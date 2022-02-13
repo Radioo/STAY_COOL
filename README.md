@@ -16,7 +16,7 @@ Example: `TickerServer.exe -a 0x10C7C608 -p launcher`
 `-p launcher` REQUIRED - Game's process name.  
 `-t 500` - Memory scan frequency in ms (default 500).  
 `-b 128` - Ticker text array size (default 128).  
-`-ip 10.0.0.12` - Local IP address override.  
+`-ip 10.0.0.12` - Local IP address override (use if auto detection fails).  
 `-port 10573` - Port override (default 10573).  
 `-file E:\\test.txt` - File mode (prints text to the specified file, overriding it each time. Remember to escape the backslashes!).  
 `--auto` - Automatic memory lookup.  
