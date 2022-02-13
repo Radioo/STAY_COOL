@@ -10,30 +10,32 @@ STAY_COOL comes in two parts: server and client. The server is responsible for r
 The server needs to be ran with admin priviliges!
 You need to provide additional arguments as well, they are listed below:
 
-Example: `TickerServer.exe 0x10C7C608 launcher 10.0.0.31 128 500`
+Example: `TickerServer.exe -a 0x10C7C608 -p launcher`
 
-1: The game's ticker memory address. This will vary from game to game and maybe even between different tools. As long as it stays the same on each boot, you're good to go. I've included the addresses I found while testing at the bottom. [I've also made a guide to find it yourself.](https://github.com/Radioo/STAY_COOL/wiki/Finding-the-ticker-address)  
-2: Game's process name. `bm2dx` for 9-17, `launcher` for 18+, `spice` or `spice64` if using spicetools.  
-3: Local IP address of the host.  
-4: Number of bytes to read. You can make it lower if you want, I ran it with 64 for a long time. If your ticker text is too long and gets cut off, increase it. I found 128 works quite well.  
-5: Memory reading interval in ms. Less means faster reads but may cost performance. Actually I don't know if it's that big of a deal with today's hardware. I found 500 works quite well.  
-6(optional): Automatic memory lookup, explained below.  
-7(optional): Start address for auto lookup. Default: `0x02A00000`  
-8(optional): End address for auto lookup. Default: `0x02FFFFFF`  
+`-a 0x10C7C608` REQUIRED - Game's ticker address.  
+`-p launcher` REQUIRED - Game's process name.  
+`-t 500` - Memory scan frequency in ms (default 500).  
+`-b 128` - Ticker text array size (default 128).  
+`-ip 10.0.0.12` - Local IP address override.  
+`-port 10573` - Port override (default 10573).  
+`-file E:\\test.txt` - File mode (prints text to the specified file, overriding it each time. Remember to escape the backslashes!).  
+`--auto` - Automatic memory lookup.  
+`-as 0x02900000` - Starting address for `--auto` (default 0x02900000).  
+`-ae 0x02FFFFFF` - Ending address for `--auto` (default 0x02FFFFFF).  
 
 Easiest way to automatically launch it is to add it to your gamestart.bat like so:  
-`start "Ticker server" "C:\Users\Radio\Documents\Builds\TickerServer\TickerServer.exe" 0x10C7C608 launcher 10.0.0.31 128 500`  
+`start "Ticker server" "C:\Users\Radio\Documents\Builds\TickerServer\TickerServer.exe" -a 0x10C7C608 -p launcher`  
 
 **Automatic memory lookup**  
-By adding `auto` as the 6th argument, you can enable automatic memory lookup. This is only needed if the ticker address changes every boot, for example: Toastertools running IIDX 18 or 19.  
-By default it begins searching from `0x02A00000` and stops at `0x02FFFFFF`. It looks for an ASCII string composed of two spaces and characters `WE`. This is important because you need the game to stay on the title screen (starting on the warning screen and through the title screen music, demo play screen changes the text to `DEMO PLAY`) through the duration of the scan. The client text will inform you if the scan didn't find anything, in that case you will need to restart the game or change the start and end addresses for lookup. I wish I could've handled it better but I'm still new to this, sorry...
+By using `--auto`, you can enable automatic memory lookup. This is only needed if the ticker address changes every boot, for example: Toastertools running IIDX 18 or 19.  
+By default it begins searching from `0x02900000` and stops at `0x02FFFFFF`. It looks for an ASCII string composed of two spaces and characters `WE`. This is important because you need the game to stay on the title screen (starting on the warning screen and through the title screen music, demo play screen changes the text to `DEMO PLAY`) through the duration of the scan. The client text will inform you if the scan didn't find anything, in that case you will need to restart the game or change the start and end addresses for lookup. I wish I could've handled it better but I'm still new to this, sorry...
 
 **Client setup**  
 Set the IP address of your server in the client.js file. Example: `let socket = new WebSocket("ws://10.0.0.31:10573/Echo");`  
 Only change the address, so `10.0.0.31` in this case. Then just run `index.html`.
 
 It's important to understand the connection behavior. As soon as you load the page, the client will attempt a connection to the server. If successful, the server will begin to initialize the process hook. Just remember to connect after the server has a process to hook into.  
-**If using `auto`: Remember to start connecting only when the game is on the title screen as explained in the auto section**
+**If using `--auto`: Remember to start connecting only when the game is on the title screen as explained in the auto section**
 
 **Customizing the look**  
 You can customize to your heart's content using style.css.
