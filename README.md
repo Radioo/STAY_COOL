@@ -43,30 +43,5 @@ You can customize to your heart's content using style.css.
 
 # Offsets  
 
-29 (2021-11-17) 0x66C7270
-
-# Addresses (obsolete, use these if running v1.1 or below)  
-
-09 0x18EF7E4  
-10 0x0194553C  
-11 0x0157B474  
-12 0x01924F28  
-13 0x01FF8A30  
-14 0x029427A0  
-15 0x029F2460  
-16 0x0297E820  
-17 0x02399BF0  
-18 0x0 (use auto, toastertools makes the address change on each boot)  
-19 0x0 (same as 18)  
-20 0x10C7C608  
-21 0x1141ACE8  
-22 0x1143AC28  
-23 0x11421F58  
-24 0x116A9B68  
-25 0x1824AB390  
-26 0x18313DAF0  
-27 0x18554B3E0  
-28 0x18554B3E0   
-29 (2021-10-13) 0x1866C7270  
-29 (2021-11-17) 0x1866CA7B0  
-30 0x858BA62BC5  
+29 (2021-11-17) 0x66C7270  
+30 0x0x858BA62BC5  
