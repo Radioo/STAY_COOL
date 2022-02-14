@@ -10,10 +10,11 @@ STAY_COOL comes in two parts: server and client. The server is responsible for r
 The server needs to be ran with admin priviliges!
 You need to provide additional arguments as well, they are listed below:
 
-Example: `TickerServer.exe -a 0x10C7C608 -p launcher`
+Example: `TickerServer.exe -p spice64 -m bm2dx.dll -o 66C7270 -file D:\\test.txt`  
 
-`-a 0x10C7C608` REQUIRED - Game's ticker address.  
+`-o 0x10C7C608` REQUIRED - Offset from base module address which points to the ticker.  
 `-p launcher` REQUIRED - Game's process name.  
+`-m bm2dx.dll` REQUIRED - Name of the module which holds the ticker address
 `-t 500` - Memory scan frequency in ms (default 500).  
 `-b 128` - Ticker text array size (default 128).  
 `-ip 10.0.0.12` - Local IP address override (use if auto detection fails).  
@@ -24,7 +25,7 @@ Example: `TickerServer.exe -a 0x10C7C608 -p launcher`
 `-ae 0x02FFFFFF` - Ending address for `--auto` (default 0x02FFFFFF).  
 
 Easiest way to automatically launch it is to add it to your gamestart.bat like so:  
-`start "Ticker server" "C:\Users\Radio\Documents\Builds\TickerServer\TickerServer.exe" -a 0x10C7C608 -p launcher`  
+`start "Ticker server" "C:\Users\Radio\Documents\Builds\TickerServer\TickerServer.exe" -p spice64 -m bm2dx.dll -o 66C7270 -file D:\\test.txt`  
 
 **Automatic memory lookup**  
 By using `--auto`, you can enable automatic memory lookup. This is only needed if the ticker address changes every boot, for example: Toastertools running IIDX 18 or 19.  
@@ -40,8 +41,11 @@ It's important to understand the connection behavior. As soon as you load the pa
 **Customizing the look**  
 You can customize to your heart's content using style.css.
 
-# Addresses  
-All of these were found while running btools, might work on spice as well, haven't tested.
+# Offsets  
+
+29 (2021-11-17) 0x66C7270
+
+# Addresses (obsolete, use these if running v1.1 or below)  
 
 09 0x18EF7E4  
 10 0x0194553C  
