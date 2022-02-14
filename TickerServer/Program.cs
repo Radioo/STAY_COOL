@@ -17,6 +17,7 @@ namespace TickerServer
         public static string? HostIP;
         public static int Port = 10573;
         public static IntPtr Address;
+        public static string ModuleName;
         public static string Text = string.Empty;
         public static bool Initialized = false;
         public static MemProber Prober;
@@ -29,7 +30,8 @@ namespace TickerServer
             // Parse arguments
             ArPar parser = new(args);
             ArgsDic = new(parser.ParseArgs());
-            Address = new IntPtr(Convert.ToInt64(ArgsDic["-a"], 16));
+            Address = new IntPtr(Convert.ToInt64(ArgsDic["-o"], 16));
+            ModuleName = ArgsDic["-m"];
             Prober = new();
 
             // Initialize the timer, check if interval override present 
@@ -178,6 +180,7 @@ namespace TickerServer
         byte[] buffer;
         static string ProcessName;
         static int BytesToRead = 128;
+        IntPtr ModuleAddress;
 
         public MemProber()
         {
@@ -200,9 +203,21 @@ namespace TickerServer
             catch (Exception ex)
             {
                 Console.WriteLine("Oh boy, did you type the process name wrong? Or worse, did you actually not laucnch the game? \n" + ex);
+                Console.ReadLine();
+                Environment.Exit(3);
             }
             buffer = new byte[Convert.ToInt32(BytesToRead)];
-            Console.WriteLine("Done!");
+
+            foreach (ProcessModule m in process.Modules)
+            {
+                if(m.ModuleName == Program.ModuleName)
+                {
+                    ModuleAddress = m.BaseAddress;
+                    break;
+                }
+            }
+            Console.WriteLine($"Module base address is 0x{ModuleAddress:X}, adding offset 0x{Program.Address:X}");
+            Program.Address = IntPtr.Add(ModuleAddress, (int)Program.Address);
         }
 
         public string Probe(IntPtr address)
