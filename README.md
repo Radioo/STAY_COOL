@@ -14,7 +14,7 @@ Example: `TickerServer.exe -p spice64 -m bm2dx.dll -o 66C7270 -file D:\\test.txt
 
 `-o 0x10C7C608` REQUIRED - Offset from base module address which points to the ticker.  
 `-p launcher` REQUIRED - Game's process name.  
-`-m bm2dx.dll` REQUIRED - Name of the module which holds the ticker address
+`-m bm2dx.dll` REQUIRED - Name of the module which holds the ticker address.  
 `-t 500` - Memory scan frequency in ms (default 500).  
 `-b 128` - Ticker text array size (default 128).  
 `-ip 10.0.0.12` - Local IP address override (use if auto detection fails).  
