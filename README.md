@@ -4,7 +4,7 @@
 HTML ticker display for IIDX
 
 # Usage
-STAY_COOL comes in two parts: server and client. The server is responsible for reading the game's memory, paring it and sending it to the client. On the other hand, the client receives the data and displays it on an HTML page.
+STAY_COOL comes in two parts: server and client. The server is responsible for reading the game's memory, parsing it and sending it to the client. On the other hand, the client receives the data and displays it on an HTML page.
 
 **Server setup**  
 The server needs to be ran with admin priviliges!
