@@ -1,5 +1,8 @@
 ![Preview](https://stn.s-ul.eu/A8f49Dzl.png)
 
+# Deprecated
+New and better hook dll can be found here: https://github.com/Radioo/TickerHook
+
 # STAY_COOL
 HTML ticker display for IIDX
 
